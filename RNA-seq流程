@@ -1,0 +1,185 @@
+SRR下载
+```
+ascp -QT -l 500m -P33001 -k 1 -i /data/software/Aspera/aspera/connect/etc/asperaweb_id_dsa.openssh era-fasp@fasp.sra.ebi.ac.uk:/vol1/srr/SRR180/074/SRR18039374 /bio/hxl/06/ &&
+ascp -QT -l 500m -P33001 -k 1 -i /data/software/Aspera/aspera/connect/etc/asperaweb_id_dsa.openssh era-fasp@fasp.sra.ebi.ac.uk:/vol1/srr/SRR124/057/SRR12492257 /bio &&
+ascp -QT -l 500m -P33001 -k 1 -i /data/software/Aspera/aspera/connect/etc/asperaweb_id_dsa.openssh era-fasp@fasp.sra.ebi.ac.uk:/vol1/srr/SRR124/058/SRR12492258 /bio &&
+ascp -QT -l 500m -P33001 -k 1 -i /data/software/Aspera/aspera/connect/etc/asperaweb_id_dsa.openssh era-fasp@fasp.sra.ebi.ac.uk:/vol1/srr/SRR124/059/SRR12492259 /bio &&
+```
+多种方法尝试下载，在不同网站
+```
+ascp -QT -l 500m -P33001 -k 1 -i /data/software/Aspera/aspera/connect/etc/asperaweb_id_dsa.openssh era-fasp@fasp.sra.ebi.ac.uk:/vol1/srr/SRR227/076/SRR22708676 /bio/primate/kidney/green_mokney/&& ascp -QT -l 500m -P33001 -k 1 -i /data/software/Aspera/aspera/connect/etc/asperaweb_id_dsa.openssh era-fasp@fasp.sra.ebi.ac.uk:/vol1/srr/SRR227/077/SRR22708677 /bio/primate/kidney/green_mokney/&& ascp -QT -l 500m -P33001 -k 1 -i /data/software/Aspera/aspera/connect/etc/asperaweb_id_dsa.openssh era-fasp@fasp.sra.ebi.ac.uk:/vol1/srr/SRR227/078/SRR22708678 /bio/primate/kidney/green_mokney/&& ascp -QT -l 500m -P33001 -k 1 -i /data/software/Aspera/aspera/connect/etc/asperaweb_id_dsa.openssh era-fasp@fasp.sra.ebi.ac.uk:/vol1/srr/SRR227/079/SRR22708679 /bio/primate/kidney/green_mokney/&& ascp -QT -l 500m -P33001 -k 1 -i /data/software/Aspera/aspera/connect/etc/asperaweb_id_dsa.openssh era-fasp@fasp.sra.ebi.ac.uk:/vol1/fastq/SRR146/013/SRR14694913 /bio/hxl/GSE175839_srr/fa/
+
+http://ftp.sra.ebi.ac.uk/vol1/fastq/
+ascp -QT -l 500m -P33001 -k 1 -i /data/software/Aspera/aspera/connect/etc/asperaweb_id_dsa.openssh anonftp@ftp-private.ncbi.nlm.nih.gov
+
+ascp -QT -l 500m -P33001 -k 1 -i /data/software/Aspera/aspera/connect/etc/asperaweb_id_dsa.openssh era-fasp@fasp.sra.ebi.ac.uk:/vol1/fastq/SRR146/013/SRR14694913 /bio/hxl/GSE175839_srr/fa/
+```
+##将SRR文件转为fasta文件
+```
+for file in SRR14694914 SRR14694915 SRR14694916 SRR14694917 SRR14694918 SRR14694919 SRR14694920; do
+    nohup /zhlab/software/sratoolkit/sratoolkit.3.0.0-centos_linux64/bin/fastq-dump -O /bio/hxl/GSE98422_srr/fa/ --split-files "$file"
+    wait
+done
+
+for file in SRR14694912; do nohup fastq-dump -O /bio/hxl/GSE175839_srr/fa/SRR14694913/ --split-files "$file" > "${file}.log" 2>&1 & done; wait
+
+fastq-dump -O /bio/hxl/GSE98422_srr/fa --split-files /bio/hxl/GSE98422_srr/SRR5494037 
+```
+
+
+查看质量，如果不行则进行下一步进行去接头
+如果是双端的，则将两个都放入输入文件即可
+```
+/data/software/fastqc/FastQC/fastqc *.fastq
+##进行去接头
+nohup sh -c 'for i in SRR12600771 SRR12600772 SRR12600773 SRR12600774 SRR12600775 SRR12600776 SRR24796034.lite SRR24796039.lite SRR25741853 SRR25741854 SRR6696824 SRR6696825 SRR6696826  ;do trim_galore  --path_to_cutadapt /home/hxl/miniconda3/envs/rna/bin/cutadapt --phred33   --fastqc   -e  0.1  --stringency  3  --length  20  --dont_gzip  -o /bio/hxl/GSE175839_srr/fa/trim/ --fastqc_args   "--outdir /bio/hxl/GSE175839_srr/fa/trim/ " /bio/hxl/GSE175839_srr/fa/${i} ;done;' 2>> /bio/hxl/GSE175839_srr/fa/output.log&
+###双端
+nohup sh -c 'for i in SRR14694912 SRR14694913 ;do trim_galore  --path_to_cutadapt /home/hxl/miniconda3/envs/rna/bin/cutadapt --phred33   --fastqc   -e  0.1  --stringency  3  --length  20  --paired  --dont_gzip  -o  /bio/hxl/GSE175839_srr/fa/SRR14694913/trim/  --fastqc_args   "--outdir  /bio/hxl/GSE175839_srr/fa/SRR14694913/trim/" /bio/hxl/GSE175839_srr/fa/SRR14694913/${i}_1.fastq /bio/hxl/GSE175839_srr/fa/SRR14694913/${i}_2.fastq ;done;' 2>>/bio/hxl/GSE175839_srr/fa/SRR14694913/trim/output.log &
+```
+##trim 去接头
+```
+nohup sh -c 'for i in SRR11873715 SRR11873716 SRR11873723 SRR11873729 SRR11873738;do trim_galore  --path_to_cutadapt /home/hxl/miniconda3/envs/rna/bin/cutadapt --phred33   --fastqc   -e  0.1  --stringency  3  --length  20  --paired  --dont_gzip  -o  /bio/hxl/2024_5_18/5_22/trim/all/  --fastqc_args   "--outdir  /bio/primate/kidney/new/green_mokney/trim/" /bio/primate/kidney/new/green_mokney/${i}_1.fastq /bio/primate/kidney/new/green_mokney/${i}_2.fastq ;done;' 2>> /bio/primate/kidney/new/green_mokney/trim/output.log &
+
+
+trim_galore --path_to_cutadapt /home/hxl/miniconda3/envs/rna/bin/cutadapt --phred33 --fastqc -e 0.1 --stringency 3 --length 20 --dont_gzip -o /bio/hxl/2024_5_18/5_22/trim/all/ --fastqc_args "--outdir /bio/hxl/2024_5_18/5_22/trim/all/" /bio/hxl/2024_5_18/5_22/human_kidney/SRR11873723_1.fastq.gz
+```
+
+
+##多个srr号为一组的要将其cat起来，并且是按照顺序
+```
+cat SRR22708677_1_val_1.fq SRR22708678_1_val_1.fq SRR22708679_1_val_1.fq SRR22708680_1_val_1.fq > /bio/primate/kidney/new/green_mokney/trim/hebing/SRR22708677_80_1_val_1.fq
+
+cat SRR22708677_2_val_2.fq SRR22708678_2_val_2.fq SRR22708679_2_val_2.fq SRR22708680_2_val_2.fq > /bio/primate/kidney/new/green_mokney/trim/hebing/SRR22708677_80_2_val_2.fq
+```
+
+
+###先用hisat2将fastaq比对到基因组上并将它转为sam文件
+hisat2
+hisat2基本用法就是`hisat2 [options]* -x <hisat2-idx> {-1 <m1> -2 <m2> | -U <r> } [-S <hit>]`，基本就是提供index的位置，PE数据或者是SE数据存放位置。然而其他可选参数却是进阶的一大名堂。新手就用默认参数呗。
+### 基本参数说明
+
+在数据比对的时候，可以安静一下读读HISAT2的额外选项，主要分为如下几块
+
+- 主要参数，一定要填写的内容
+- 输入选项， 对结果影响不大
+- 比对选项，主要是`--n-ceil`决定模糊字符的数量
+- 得分选项， 当一个read比对到不同部位时，确定那个才是最优的。基于mismatch, soft-cliping, gap得分。
+- 可变剪切比对选项， 你要决定exon，intron的长度，GT/AG的得分，还可以提供已知的可变剪切和外显子gtf文件，
+- 报告选项，确定要找多少的位置
+- PE选项， 与gap有关的参数
+- 输出选项，建议加上-t记录时间，其他就是压缩格式，不影响比对
+- SAM选项， 主要是决定SAM的header应该添加哪些内容
+- 性能选项和其他选项不考虑
+
+**注**: _soft clipping_ 指的是比对的read只有部分匹配到参考序列上，还有部分没有匹配上。也就是一个100bp的read，就匹配上前面20 bp或者是后面20bp，或者是后面20bp比对的效果不太好。
+
+因此影响比对结果就是**比对选项**，**得分选项**，**可变剪切选项**和**PE选项**，在有生之年我应该会写一片文章介绍这些选项对结果的影响
+```
+###双端
+hisat2  -p 80 --dta --rna-strandness RF -x /zhlab/date/vert/gtf/06-macFas5  -S /bio/F24A610000313_MACuvbdO_0621/xin_sam/06-1-1.sam -1 /bio/F24A610000313_MACuvbdO_0621/shi-1-1_PBMCA/shi-1-1_PBMCA_1.fq.gz -2 /bio/F24A610000313_MACuvbdO_0621/shi-1-1_PBMCA/shi-1-1_PBMCA_2.fq.gz
+###单端
+hisat2  -p 60 -x /zhlab/date/vert/gtf/07-rheMac10  -S /bio/primate/kidney/new/sam/07/SRR306785.sam /bio/primate/kidney/new/07/SRR306785_1.fastq && hisat2  -p 60 -x /zhlab/date/vert/gtf/07-rheMac10  -S /bio/primate/kidney/new/sam/07/SRR306784.sam /bio/primate/kidney/new/07/SRR306784_1_trimmed.fq
+###单端
+nohup sh -c 'for i in SRR18155271_72 SRR18155275_76 SRR18155279_80 SRR18155285_86 SRR18155291_92 SRR18155297_98 SRR18155303_04;do hisat2 -p 60 -x /bio/primate/vert/chlAet2 -S /bio/primate/kidney/new/sam/012/${i}.sam  /bio/primate/kidney/new/012/hebing/${i}.fq ;done;' 2>> /bio/primate/kidney/new/output012.log &
+###双端
+
+nohup sh -c 'for i in SRR5494037 ;do hisat2 -p 20 -x /data/genome/gencode_GRch38_p13/GRCh38_p13_genome_primary/genome/hisat2/GRCh38_primary_assembly_genome -S /bio/hxl/GSE98422_srr/fa/sam/${i}.sam -1 /bio/hxl/GSE98422_srr/fa/${i}_1.fastq -2 /bio/hxl/GSE98422_srr/fa/${i}_2.fastq;done;' 2>> /bio/hxl/GSE98422_srr/fa/output1.log &
+```
+
+####samtools三板斧，利用samtools将数据改换格式并排序建立索引
+```
+samtools view -h -q 60 -b  171-1.sam > 171-1.sam.bam
+samtools sort -@ 50 -o SRR5494037.sort.bam SRR5494037.bam
+
+
+
+ls *.sam|while read id;do /data/software/samtools/samtools-1.9/samtools view -h -q 60 -b  ${id} > ${id}.bam;done
+
+
+ls *.bam|while read id;do samtools sort -@ 50 -o ${id}.sort.bam  ${id};done
+
+
+
+
+ls *.sort.bam|while read id;do samtools index ${id};done
+
+
+
+综合samtools脚本版
+# 处理 SAM 文件并生成 BAM 文件
+ls *.sam | while read id; do
+    /data/software/samtools/samtools-1.9/samtools view -h -q 60 -b "${id}" > "${id}.bam"
+    # 检查是否已经存在以.sam.bam结尾的文件，如果是，则重命名
+    if [[ -f "${id}.sam.bam" ]]; then
+        mv "${id}.sam.bam" "${id}.bam"
+    fi
+done
+
+# 对 BAM 文件进行排序
+ls *.bam | while read id; do
+    samtools sort -@ 50 -o "${id}.sort.bam" "${id}"
+done
+
+# 为排序后的 BAM 文件创建索引
+ls *.sort.bam | while read id; do
+    samtools index "${id}"
+done
+
+nohup bash process_sam_files.sh > output2.log 2>&1 &
+
+samtools index /bio/F24A610000313_MACuvbdO_0621/sam/07-1-2.sam.bam.sort.bam
+```
+用stringtie将reads比对到参考基因组
+首先将reads比对到参考基因组，然后根据定位的坐标信息和跨越内含子的spliced reads中反映的连接关系建立备选的拓扑图，最后设计相应的算法在拓扑图中选择合理的转录本形成最终的转录组数据集
+###要跑四个数据，分别为基因组，LTR，line，sine
+###下方四个个分别为基因组,ltr,line,sine的位置
+###下方代码的参数意思是，第一个为输出文件，第二个为基因组或LTR等位置，第三个不关注，但就按照输出文件的标准写，第四个为输入的sort.bam文件
+
+/zhlab/date/vert/gtf/07-rheMac10.gtf
+/zhlab/date/vert/LTR/08-marmoset_repeatmasker_ltr_tb-6-13_gtf.txt
+/zhlab/date/vert/LINE/07-rhesusLINE_gtf.txt
+/zhlab/date/vert/SINE/08-marmosetSINE_gtf.txt
+
+```
+ stringtie -e -m 50 -A /bio/primate/new/RNA-seq/shuchu/091_094/hic/SRR12010094_gtf.tab  -B -p 30 -G /zhlab/date/vert/gtf/08-caljac4.gtf -o /bio/primate/new/RNA-seq/shuchu/091_094/hic/st091/SRR12010094_out.gtf /bio/primate/new/RNA-seq/shuchu/091_094/hic/SRR12010094.sort.bam
+
+stringtie -e -m 50 -A /bio/primate/kidney/string/LINE/02-SRR306807LINE.txt -p 30 -G /bio/hxl/vert/gtf/LINE/02-gorillaLINE_gtf.txt -o /bio/primate/kidney/string/LINE/02-SRR306807LINE_out.gtf /bio/primate/kidney/new/sam/02/SRR306807.sam.bam.sort.bam
+###gtf
+nohup sh -c 'for i in 171-1 171-2 171-3 331-1 331-2 331-3 nc-1 nc-2 nc-3;do stringtie -e -m 50 -A /bio/hxl/zhuanluzu/workplace/sam/gene/${i}_gene.txt -p 30 -G /zhlab/date/vert/gtf/07-rheMac10.gtf -o /bio/hxl/zhuanluzu/workplace/sam/gene/${i}_LINE_out.gtf /bio/hxl/zhuanluzu/workplace/sam/${i}.sam.bam.sort.bam;done;' 2>> /bio/hxl/zhuanluzu/workplace/sam/gene_output.log &
+
+###LINE
+nohup sh -c 'for i in 171-1 171-2 171-3 331-1 331-2 331-3 nc-1 nc-2 nc-3;do stringtie -e -m 50 -A /bio/hxl/zhuanluzu/workplace/hisat2/line/${i}_LINE.txt -p 60 -G /zhlab/date/vert/LINE/07-rhesusLINE_gtf.txt -o /bio/hxl/zhuanluzu/workplace/sam/LINE/${i}_LINE_out.gtf /bio/hxl/zhuanluzu/workplace/hisat2/sam/${i}.sam.bam.sort.bam;done;' 2>> /bio/hxl/zhuanluzu/workplace/hisat2/line/LINE_output.log &
+
+nohup sh -c 'for i in  07-1-1 07-1-2 07-1-3;do stringtie -e -m 50 -A /bio/F24A610000313_MACuvbdO_0621/sam/LINE/${i}_LINE.txt -p 30 -G /zhlab/date/vert/LINE/07-rhesusLINE_gtf.txt -o /bio/F24A610000313_MACuvbdO_0621/sam/LINE/${i}_LINE_out.gtf /bio/F24A610000313_MACuvbdO_0621/sam/${i}.sam.bam.sort.bam;done;' 2>> /bio/F24A610000313_MACuvbdO_0621/sam/LINE/output.log &
+###SINE
+nohup sh -c 'for i in 06-1-1 06-1-2 06-1-3;do stringtie -e -m 50 -A /bio/F24A610000313_MACuvbdO_0621/sam/SINE/${i}_SINE.txt -p 30 -G /zhlab/date/vert/SINE/06-crab-eating-macaqueSINE_gtf.txt -o /bio/F24A610000313_MACuvbdO_0621/sam/SINE/${i}_SINE_out.gtf /bio/F24A610000313_MACuvbdO_0621/sam/${i}.sam.bam.sort.bam;done;' 2>> /bio/F24A610000313_MACuvbdO_0621/sam/SINE/output.log &
+
+nohup sh -c 'for i in  07-1-1 07-1-2 07-1-3;do stringtie -e -m 50 -A /bio/F24A610000313_MACuvbdO_0621/sam/SINE/${i}_SINE.txt -p 30 -G /zhlab/date/vert/SINE/07-rhesusSINE_gtf.txt -o /bio/F24A610000313_MACuvbdO_0621/sam/SINE/${i}_SINE_out.gtf /bio/F24A610000313_MACuvbdO_0621/sam/${i}.sam.bam.sort.bam;done;' 2>> /bio/F24A610000313_MACuvbdO_0621/sam/SINE/output.log &
+
+
+###LTR
+nohup sh -c 'for i in 06-1-1 06-1-2 06-1-3;do stringtie -e -m 50 -A /bio/F24A610000313_MACuvbdO_0621/sam/LTR/${i}_LTR.txt -p 30 -G /zhlab/date/vert/LTR/06-crab-eatingmacauue_repeatmasker_ltr_tb-6-13_gtf.txt -o /bio/F24A610000313_MACuvbdO_0621/sam/LTR/${i}_LTR_out.gtf /bio/F24A610000313_MACuvbdO_0621/sam/${i}.sam.bam.sort.bam;done;' 2>> /bio/F24A610000313_MACuvbdO_0621/sam/LTR/output.log &
+
+nohup sh -c 'for i in 07-1-1 07-1-2 07-1-3;do stringtie -e -m 50 -A /bio/F24A610000313_MACuvbdO_0621/sam/LTR/${i}_LTR.txt -p 30 -G /zhlab/date/vert/LTR/06-crab-eatingmacauue_repeatmasker_ltr_tb-6-13_gtf.txt -o /bio/F24A610000313_MACuvbdO_0621/sam/LTR/${i}_LTR_out.gtf /bio/F24A610000313_MACuvbdO_0621/sam/${i}.sam.bam.sort.bam;done;' 2>> /bio/F24A610000313_MACuvbdO_0621/sam/LTR/output.log &
+
+/bio/primate/kidney/new/sam/013/
+/bio/primate/kidney/string/LINE/
+```
+获取的TXT文件即可进行下一步差异表达分析
+
+
+
+
+
+利用samtools提取整个文件中的某些片段
+```
+samtools view -h /bio/primate/bam-fibroblast/07-SRR6190156_q60-header.sort.bam chr4:140452959-140463325 >/bio/primate/kidney/new/sam/06/jiequ/SRR7979744_140452959-140463325.sam.bam.sort.bam
+
+samtools view  /bio/F24A610000313_MACuvbdO_0621/sam/06-1-1.sam.bam.sort.bam chr1:1612281-2379152 >/bio/F24A610000313_MACuvbdO_0621/xin_sam/try2new_06-1-1_1612281-2379152.sort.bam
+```
+
+
+/data/software/bowtie2/bowtie2-2.4.2-linux-x86_64/bowtie2-build --threads 30 /data3/hxl/shujuku/fa/all_fna/GCA_008058575.1_rheMacS_1.0_genomic.fna /bio/hxl/bt/Rhesus
+
+
+
